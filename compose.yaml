@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: pinakes
       POSTGRES_PASSWORD: pinakes
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pinakes"]
       interval: 5s
