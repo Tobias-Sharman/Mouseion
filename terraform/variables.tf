@@ -21,3 +21,26 @@ variable "master_count" {
   type        = number
   default     = 1
 }
+
+variable "master_instance_type" {
+  description = "Instance type for the control plane node(s)"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "web_instance_type" {
+  description = "Instance type for the web node"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "db_instance_type" {
+  description = "Instance type for the DB node"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "public_key_path" {
+  description = "Path to the public key for cluster SSH access"
+  type        = string
+}
