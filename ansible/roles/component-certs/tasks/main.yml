@@ -1,0 +1,29 @@
+- name: Generate private key
+  community.crypto.openssl_privatekey:
+    path: "{{ cert_dir }}/{{ item.name }}-key.pem"
+    type: RSA
+    size: 2048
+    mode: "0600"
+  loop: "{{ component_certs }}"
+  loop_control:
+    label: "{{ item.name }}"
+- name: Generate CSR
+  community.crypto.openssl_csr:
+    path: "{{ cert_dir }}/{{ item.name }}.csr"
+    privatekey_path: "{{ cert_dir }}/{{ item.name }}-key.pem"
+    common_name: "{{ item.common_name }}"
+    organization_name: "{{ item.organization }}"
+  loop: "{{ component_certs }}"
+  loop_control:
+    label: "{{ item.name }}"
+- name: Sign certificate with the CA
+  community.crypto.x509_certificate:
+    path: "{{ cert_dir }}/{{ item.name }}.pem"
+    csr_path: "{{ cert_dir }}/{{ item.name }}.csr"
+    provider: ownca
+    ownca_path: "{{ cert_dir }}/ca.pem"
+    ownca_privatekey_path: "{{ cert_dir }}/ca-key.pem"
+    ownca_not_after: "+{{ cert_days }}d"
+  loop: "{{ component_certs }}"
+  loop_control:
+    label: "{{ item.name }}"

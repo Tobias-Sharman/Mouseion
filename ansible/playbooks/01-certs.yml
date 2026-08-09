@@ -1,0 +1,9 @@
+- name: Generate cluster CA
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - ca
+    - component-certs
+    - apiserver-cert
+    - kubelet-certs

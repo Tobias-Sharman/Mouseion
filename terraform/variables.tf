@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
-  default     = "10.206.0.0/23"
+  default     = "10.111.0.0/23"
 }
 
 variable "ssh_source_cidr" {

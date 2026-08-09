@@ -9,8 +9,9 @@
 /data/
 /test-files/
 
-ansible/inventory/*.ini
-!ansible/inventory/*.example.ini
+ansible/certs/
+*.retry
+
 
 .terraform/
 terraform.tfstate

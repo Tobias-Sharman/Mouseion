@@ -1,0 +1,16 @@
+component_certs:
+  - name: admin
+    common_name: admin
+    organization: "system:masters"
+  - name: kube-controller-manager
+    common_name: "system:kube-controller-manager"
+    organization: "system:kube-controller-manager"
+  - name: kube-scheduler
+    common_name: "system:kube-scheduler"
+    organization: "system:kube-scheduler"
+  - name: kube-proxy
+    common_name: "system:kube-proxy"
+    organization: "system:node-proxier"
+  - name: service-account
+    common_name: "service-accounts"
+    organization: "Kubernetes"

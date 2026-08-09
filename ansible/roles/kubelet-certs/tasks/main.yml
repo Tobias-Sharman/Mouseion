@@ -1,0 +1,30 @@
+- name: Generate kubelet private key
+  community.crypto.openssl_privatekey:
+    path: "{{ cert_dir }}/{{ hostvars[item].ec2_tags.Name }}-key.pem"
+    type: RSA
+    size: 2048
+    mode: "0600"
+  loop: "{{ groups['worker'] }}"
+  loop_control:
+    label: "{{ hostvars[item].ec2_tags.Name }}"
+- name: Generate kubelet CSR
+  community.crypto.openssl_csr:
+    path: "{{ cert_dir }}/{{ hostvars[item].ec2_tags.Name }}.csr"
+    privatekey_path: "{{ cert_dir }}/{{ hostvars[item].ec2_tags.Name }}-key.pem"
+    common_name: "system:node:{{ hostvars[item].ec2_tags.Name }}"
+    organization_name: "system:nodes"
+    subject_alt_name: "{{ ['IP:' + hostvars[item].ansible_host] }}"
+  loop: "{{ groups['worker'] }}"
+  loop_control:
+    label: "{{ hostvars[item].ec2_tags.Name }}"
+- name: Sign kubelet certificate with the CA
+  community.crypto.x509_certificate:
+    path: "{{ cert_dir }}/{{ hostvars[item].ec2_tags.Name }}.pem"
+    csr_path: "{{ cert_dir }}/{{ hostvars[item].ec2_tags.Name }}.csr"
+    provider: ownca
+    ownca_path: "{{ cert_dir }}/ca.pem"
+    ownca_privatekey_path: "{{ cert_dir }}/ca-key.pem"
+    ownca_not_after: "+{{ cert_days }}d"
+  loop: "{{ groups['worker'] }}"
+  loop_control:
+    label: "{{ hostvars[item].ec2_tags.Name }}"
