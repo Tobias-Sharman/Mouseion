@@ -27,7 +27,7 @@ resource "aws_instance" "controller" {
   vpc_security_group_ids = [aws_security_group.public.id]
   key_name               = aws_key_pair.main.key_name
 
-  tags = { Name = "cluster-controller-${count.index}" }
+  tags = { Name = "cluster-controller-${count.index}", Project = "cluster" }
 }
 
 resource "aws_instance" "web" {
@@ -37,7 +37,7 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.public.id]
   key_name               = aws_key_pair.main.key_name
 
-  tags = { Name = "cluster-web" }
+  tags = { Name = "cluster-web", Project = "cluster" }
 }
 
 resource "aws_instance" "db" {
@@ -47,5 +47,5 @@ resource "aws_instance" "db" {
   vpc_security_group_ids = [aws_security_group.private.id]
   key_name               = aws_key_pair.main.key_name
 
-  tags = { Name = "cluster-db" }
+  tags = { Name = "cluster-db", Project = "cluster" }
 }

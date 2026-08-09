@@ -48,6 +48,15 @@ resource "aws_security_group_rule" "private_db_from_public" {
   security_group_id        = aws_security_group.private.id
 }
 
+resource "aws_security_group_rule" "private_ssh_from_public" {
+  type                     = "ingress"
+  from_port                = 22
+  to_port                  = 22
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.public.id
+  security_group_id        = aws_security_group.private.id
+}
+
 resource "aws_security_group_rule" "private_egress" {
   type              = "egress"
   from_port         = 0
