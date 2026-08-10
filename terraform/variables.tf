@@ -1,3 +1,15 @@
+variable "project_name" {
+  description = "Name used to prefix and tag all project resources"
+  type        = string
+  default     = "serapeum"
+}
+
+variable "master_count" {
+  description = "Number of control plane nodes"
+  type        = number
+  default     = 1
+}
+
 variable "aws_region" {
   description = "AWS region to deploy into"
   type        = string
@@ -10,16 +22,11 @@ variable "vpc_cidr" {
   default     = "10.111.0.0/23"
 }
 
+# TODO: Fix on VPN implementation
 variable "ssh_source_cidr" {
   description = "CIDR allowed to SSH and reach the API server. Restrict to your own IP/32 rather than leaving this open"
   type        = string
   default     = "0.0.0.0/0"
-}
-
-variable "master_count" {
-  description = "Number of control plane nodes"
-  type        = number
-  default     = 1
 }
 
 variable "master_instance_type" {

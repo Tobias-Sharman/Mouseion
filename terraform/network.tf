@@ -3,13 +3,13 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = { Name = "cluster-vpc" }
+  tags = { Name = "${var.project_name}-vpc" }
 }
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
-  tags = { Name = "cluster-igw" }
+  tags = { Name = "${var.project_name}-igw" }
 }
 
 resource "aws_subnet" "public" {
@@ -17,7 +17,7 @@ resource "aws_subnet" "public" {
   cidr_block              = cidrsubnet(var.vpc_cidr, 1, 0)
   map_public_ip_on_launch = true
 
-  tags = { Name = "cluster-subnet-public" }
+  tags = { Name = "${var.project_name}-subnet-public" }
 }
 
 resource "aws_route_table" "public" {
@@ -28,7 +28,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.main.id
   }
 
-  tags = { Name = "cluster-rt-public" }
+  tags = { Name = "${var.project_name}-rt-public" }
 }
 
 resource "aws_route_table_association" "public" {
@@ -41,13 +41,13 @@ resource "aws_subnet" "private" {
   cidr_block              = cidrsubnet(var.vpc_cidr, 1, 1)
   map_public_ip_on_launch = false
 
-  tags = { Name = "cluster-subnet-private" }
+  tags = { Name = "${var.project_name}-subnet-private" }
 }
 
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
-  tags = { Name = "cluster-rt-private" }
+  tags = { Name = "${var.project_name}-rt-private" }
 }
 
 resource "aws_route_table_association" "private" {

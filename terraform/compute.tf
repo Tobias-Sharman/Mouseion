@@ -14,7 +14,7 @@ data "aws_ami" "debian" {
 }
 
 resource "aws_key_pair" "main" {
-  key_name   = "cluster-key"
+  key_name   = "${var.project_name}-key"
   public_key = file(var.public_key_path)
 }
 
@@ -27,7 +27,7 @@ resource "aws_instance" "controller" {
   vpc_security_group_ids = [aws_security_group.public.id]
   key_name               = aws_key_pair.main.key_name
 
-  tags = { Name = "cluster-controller-${count.index}", Project = "cluster", Role = "controller" }
+  tags = { Name = "${var.project_name}-controller-${count.index}", Project = var.project_name, Role = "controller" }
 }
 
 resource "aws_instance" "web" {
@@ -37,7 +37,7 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.public.id]
   key_name               = aws_key_pair.main.key_name
 
-  tags = { Name = "cluster-web", Project = "cluster", Role = "worker" }
+  tags = { Name = "${var.project_name}-web", Project = var.project_name, Role = "worker" }
 }
 
 resource "aws_instance" "db" {
@@ -47,5 +47,5 @@ resource "aws_instance" "db" {
   vpc_security_group_ids = [aws_security_group.private.id]
   key_name               = aws_key_pair.main.key_name
 
-  tags = { Name = "cluster-db", Project = "cluster", Role = "worker" }
+  tags = { Name = "${var.project_name}-db", Project = var.project_name, Role = "worker" }
 }

@@ -1,8 +1,8 @@
 resource "aws_security_group" "public" {
-  name   = "cluster-public"
+  name   = "${var.project_name}-public"
   vpc_id = aws_vpc.main.id
 
-  tags = { Name = "cluster-sg-public" }
+  tags = { Name = "${var.project_name}-sg-public" }
 }
 
 resource "aws_security_group_rule" "public_ssh" {
@@ -33,10 +33,10 @@ resource "aws_security_group_rule" "public_egress" {
 }
 
 resource "aws_security_group" "private" {
-  name   = "cluster-private"
+  name   = "${var.project_name}-private"
   vpc_id = aws_vpc.main.id
 
-  tags = { Name = "cluster-sg-private" }
+  tags = { Name = "${var.project_name}-sg-private" }
 }
 
 resource "aws_security_group_rule" "private_db_from_public" {
