@@ -7,7 +7,12 @@ variable "project_name" {
 variable "master_count" {
   description = "Number of control plane nodes"
   type        = number
-  default     = 1
+  default     = 3
+
+  validation {
+    condition     = var.master_count % 2 == 1
+    error_message = "master_count must be odd, since etcd requires an odd number of members for quorum."
+  }
 }
 
 variable "aws_region" {
