@@ -1,0 +1,9 @@
+kubeconfigs:
+  - name: admin
+    server: "https://{{ apiserver_external_address }}:6443"
+  - name: kube-controller-manager
+    server: "https://127.0.0.1:6443"
+  - name: kube-scheduler
+    server: "https://127.0.0.1:6443"
+  - name: kube-proxy
+    server: "https://{{ apiserver_internal_address }}:6443"

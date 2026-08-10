@@ -4,15 +4,9 @@
     type: RSA
     size: 2048
     mode: "0600"
-- name: Collect controller private IPs
-  ansible.builtin.set_fact:
-    controller_private_ips: "{{ groups['controller'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^', 'IP:') | list }}"
-- name: Collect controller public IPs
-  ansible.builtin.set_fact:
-    controller_public_ips: "{{ groups['controller'] | map('extract', hostvars, 'public_ip_address') | select('string') | map('regex_replace', '^', 'IP:') | list }}"
 - name: Build API server SAN list
   ansible.builtin.set_fact:
-    apiserver_sans: "{{ ['DNS:kubernetes', 'DNS:kubernetes.default', 'DNS:kubernetes.default.svc', 'DNS:kubernetes.default.svc.cluster.local', 'DNS:localhost', 'IP:127.0.0.1', 'IP:' + service_cluster_ip] + controller_private_ips + controller_public_ips }}"
+    apiserver_sans: "{{ ['DNS:kubernetes', 'DNS:kubernetes.default', 'DNS:kubernetes.default.svc', 'DNS:kubernetes.default.svc.cluster.local', 'DNS:localhost', 'IP:127.0.0.1', 'IP:' + service_cluster_ip, apiserver_external_san, apiserver_internal_san] }}"
 - name: Generate API server CSR
   community.crypto.openssl_csr:
     path: "{{ cert_dir }}/kubernetes.csr"

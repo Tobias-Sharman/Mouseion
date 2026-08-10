@@ -1,0 +1,24 @@
+- name: Generate component kubeconfigs
+  ansible.builtin.template:
+    src: kubeconfig.yml.j2
+    dest: "{{ cert_dir }}/{{ item.name }}.kubeconfig"
+    mode: "0600"
+  vars:
+    kc_name: "{{ item.name }}"
+    kc_server: "{{ item.server }}"
+    kc_cert_prefix: "{{ item.name }}"
+  loop: "{{ kubeconfigs }}"
+  loop_control:
+    label: "{{ item.name }}"
+- name: Generate kubelet kubeconfigs
+  ansible.builtin.template:
+    src: kubeconfig.yml.j2
+    dest: "{{ cert_dir }}/{{ hostvars[item].ec2_tags.Name }}.kubeconfig"
+    mode: "0600"
+  vars:
+    kc_name: "system:node:{{ hostvars[item].ec2_tags.Name }}"
+    kc_server: "https://{{ apiserver_internal_address }}:6443"
+    kc_cert_prefix: "{{ hostvars[item].ec2_tags.Name }}"
+  loop: "{{ groups['worker'] }}"
+  loop_control:
+    label: "{{ hostvars[item].ec2_tags.Name }}"

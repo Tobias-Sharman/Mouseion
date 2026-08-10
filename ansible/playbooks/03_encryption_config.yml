@@ -1,0 +1,18 @@
+- name: Generate etcd encryption config
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Generate encryption key
+      ansible.builtin.command: openssl rand -base64 32
+      register: encryption_key_result
+      changed_when: false
+      no_log: true
+    - name: Write encryption config
+      ansible.builtin.template:
+        src: encryption_config.yml.j2
+        dest: "{{ cert_dir }}/encryption_config.yml"
+        mode: "0600"
+      vars:
+        encryption_key: "{{ encryption_key_result.stdout }}"
+      no_log: true

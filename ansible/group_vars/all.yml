@@ -1,2 +1,4 @@
 ansible_user: admin
 cluster_name: mouseion
+cert_dir: "{{ playbook_dir }}/../certs"
+cert_days: 3650
