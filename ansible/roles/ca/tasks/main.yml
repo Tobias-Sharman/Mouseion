@@ -13,7 +13,7 @@
   community.crypto.openssl_csr:
     path: "{{ cert_dir }}/ca.csr"
     privatekey_path: "{{ cert_dir }}/ca-key.pem"
-    common_name: "kubernetes-ca"
+    common_name: "{{ cluster_name }}-ca"
     basic_constraints:
       - "CA:TRUE"
     basic_constraints_critical: true
