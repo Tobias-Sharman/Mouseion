@@ -1,0 +1,5 @@
+ca_definitions:
+  - name: etcd-ca
+    common_name: "{{ cluster_name }}-etcd-ca"
+  - name: kubernetes-ca
+    common_name: "{{ cluster_name }}-ca"

@@ -1,0 +1,35 @@
+- name: Download kube-controller-manager binary
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/amd64/kube-controller-manager"
+    dest: "{{ install_dir }}/kube-controller-manager"
+    mode: "0755"
+- name: Copy Kubernetes CA certificate and key
+  ansible.builtin.copy:
+    src: "{{ cert_dir }}/{{ item }}"
+    dest: "{{ kube_config_dir }}/{{ item }}"
+    mode: "0600"
+  loop:
+    - kubernetes-ca.pem
+    - kubernetes-ca-key.pem
+- name: Copy service-account private key
+  ansible.builtin.copy:
+    src: "{{ cert_dir }}/service-account-key.pem"
+    dest: "{{ kube_config_dir }}/service-account-key.pem"
+    mode: "0600"
+- name: Copy kube-controller-manager kubeconfig
+  ansible.builtin.copy:
+    src: "{{ cert_dir }}/kube-controller-manager.kubeconfig"
+    dest: "{{ kube_config_dir }}/kube-controller-manager.kubeconfig"
+    mode: "0600"
+- name: Template kube-controller-manager systemd unit
+  ansible.builtin.template:
+    src: kube_controller_manager.service.j2
+    dest: /etc/systemd/system/kube-controller-manager.service
+    mode: "0644"
+  notify: reload kube-controller-manager systemd
+- name: Enable and start kube-controller-manager
+  ansible.builtin.systemd:
+    name: kube-controller-manager
+    daemon_reload: true
+    enabled: true
+    state: started

@@ -32,6 +32,15 @@ resource "aws_security_group_rule" "public_egress" {
   security_group_id = aws_security_group.public.id
 }
 
+resource "aws_security_group_rule" "public_etcd_peer" {
+  type                     = "ingress"
+  from_port                = 2379
+  to_port                  = 2380
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.public.id
+  security_group_id        = aws_security_group.public.id
+}
+
 resource "aws_security_group" "private" {
   name   = "${var.project_name}-private"
   vpc_id = aws_vpc.main.id

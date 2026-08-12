@@ -2,3 +2,8 @@ ansible_user: admin
 cluster_name: mouseion
 cert_dir: "{{ playbook_dir }}/../certs"
 cert_days: 3650
+service_cluster_ip_range: "10.206.0.0/24"
+pod_cidr: "10.206.1.0/24"
+kube_version: "1.36.3"
+install_dir: /usr/local/bin
+kube_config_dir: /etc/kubernetes/pki

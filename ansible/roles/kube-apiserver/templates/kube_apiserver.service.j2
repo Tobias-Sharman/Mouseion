@@ -1,0 +1,29 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/kubernetes/kubernetes
+After=network.target
+
+[Service]
+ExecStart={{ install_dir }}/kube-apiserver \
+  --advertise-address={{ controller_private_ips[ec2_tags.Name] }} \
+  --bind-address=0.0.0.0 \
+  --allow-privileged=true \
+  --authorization-mode=Node,RBAC \
+  --client-ca-file={{ kube_config_dir }}/kubernetes-ca.pem \
+  --etcd-cafile={{ kube_config_dir }}/etcd-ca.pem \
+  --etcd-certfile={{ kube_config_dir }}/kube-apiserver-etcd-client.pem \
+  --etcd-keyfile={{ kube_config_dir }}/kube-apiserver-etcd-client-key.pem \
+  --etcd-servers={{ etcd_servers }} \
+  --encryption-provider-config={{ kube_config_dir }}/encryption_config.yml \
+  --service-account-key-file={{ kube_config_dir }}/service-account.pem \
+  --service-account-signing-key-file={{ kube_config_dir }}/service-account-key.pem \
+  --service-account-issuer=https://{{ apiserver_external_address }}:6443 \
+  --service-cluster-ip-range={{ service_cluster_ip_range }} \
+  --tls-cert-file={{ kube_config_dir }}/kubernetes.pem \
+  --tls-private-key-file={{ kube_config_dir }}/kubernetes-key.pem \
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

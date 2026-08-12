@@ -1,0 +1,57 @@
+- name: Create Kubernetes config directory
+  ansible.builtin.file:
+    path: "{{ kube_config_dir }}"
+    state: directory
+    mode: "0700"
+- name: Download kube-apiserver binary
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/amd64/kube-apiserver"
+    dest: "{{ install_dir }}/kube-apiserver"
+    mode: "0755"
+- name: Copy Kubernetes CA
+  ansible.builtin.copy:
+    src: "{{ cert_dir }}/kubernetes-ca.pem"
+    dest: "{{ kube_config_dir }}/kubernetes-ca.pem"
+    mode: "0600"
+- name: Copy API server certificate and key
+  ansible.builtin.copy:
+    src: "{{ cert_dir }}/{{ item }}"
+    dest: "{{ kube_config_dir }}/{{ item }}"
+    mode: "0600"
+  loop:
+    - kubernetes.pem
+    - kubernetes-key.pem
+- name: Copy service-account certificate and key
+  ansible.builtin.copy:
+    src: "{{ cert_dir }}/{{ item }}"
+    dest: "{{ kube_config_dir }}/{{ item }}"
+    mode: "0600"
+  loop:
+    - service-account.pem
+    - service-account-key.pem
+- name: Copy etcd CA and client certificate
+  ansible.builtin.copy:
+    src: "{{ cert_dir }}/{{ item }}"
+    dest: "{{ kube_config_dir }}/{{ item }}"
+    mode: "0600"
+  loop:
+    - etcd-ca.pem
+    - kube-apiserver-etcd-client.pem
+    - kube-apiserver-etcd-client-key.pem
+- name: Copy encryption config
+  ansible.builtin.copy:
+    src: "{{ cert_dir }}/encryption_config.yml"
+    dest: "{{ kube_config_dir }}/encryption_config.yml"
+    mode: "0600"
+- name: Template kube-apiserver systemd unit
+  ansible.builtin.template:
+    src: kube_apiserver.service.j2
+    dest: /etc/systemd/system/kube_apiserver.service
+    mode: "0644"
+  notify: reload kube-apiserver systemd
+- name: Enable and start kube-apiserver
+  ansible.builtin.systemd:
+    name: kube-apiserver
+    daemon_reload: true
+    enabled: true
+    state: started

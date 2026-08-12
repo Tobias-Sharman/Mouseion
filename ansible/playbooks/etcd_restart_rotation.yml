@@ -1,0 +1,22 @@
+- name: Restart etcd on all controllers
+  hosts: controller
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Restart etcd
+      ansible.builtin.systemd:
+        name: etcd
+        state: restarted
+- name: Confirm cluster health after rotation
+  hosts: controller[0]
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for etcd to report healthy
+      ansible.builtin.command:
+        cmd: "etcdctl --cacert=/etc/etcd/etcd-ca.pem --cert=/etc/etcd/etcd.pem --key=/etc/etcd/etcd-key.pem endpoint health --cluster"
+      register: etcd_health
+      until: etcd_health.rc == 0
+      retries: 15
+      delay: 5
+      changed_when: false

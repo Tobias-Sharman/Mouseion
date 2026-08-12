@@ -1,0 +1,13 @@
+- name: Bootstrap control plane
+  hosts: controller
+  become: true
+  gather_facts: true
+  pre_tasks:
+    - ansible.builtin.import_tasks: tasks/read_terraform_outputs.yml
+      delegate_to: localhost
+      run_once: true
+      become: false
+  roles:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler

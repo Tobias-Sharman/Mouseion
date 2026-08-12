@@ -16,13 +16,13 @@
   loop: "{{ component_certs }}"
   loop_control:
     label: "{{ item.name }}"
-- name: Sign certificate with the CA
+- name: Sign certificate with the Kubernetes CA
   community.crypto.x509_certificate:
     path: "{{ cert_dir }}/{{ item.name }}.pem"
     csr_path: "{{ cert_dir }}/{{ item.name }}.csr"
     provider: ownca
-    ownca_path: "{{ cert_dir }}/ca.pem"
-    ownca_privatekey_path: "{{ cert_dir }}/ca-key.pem"
+    ownca_path: "{{ cert_dir }}/kubernetes-ca.pem"
+    ownca_privatekey_path: "{{ cert_dir }}/kubernetes-ca-key.pem"
     ownca_not_after: "+{{ cert_days }}d"
   loop: "{{ component_certs }}"
   loop_control:

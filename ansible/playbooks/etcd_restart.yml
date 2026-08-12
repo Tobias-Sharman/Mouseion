@@ -1,0 +1,18 @@
+- name: Restart etcd cluster (one node at a time)
+  hosts: controller
+  become: true
+  gather_facts: false
+  serial: 1
+  tasks:
+    - name: Restart etcd
+      ansible.builtin.systemd:
+        name: etcd
+        state: restarted
+    - name: Wait for etcd to report healthy before continuing
+      ansible.builtin.command:
+        cmd: "etcdctl --cacert=/etc/etcd/etcd-ca.pem --cert=/etc/etcd/etcd.pem --key=/etc/etcd/etcd-key.pem endpoint health"
+      register: etcd_health
+      until: etcd_health.rc == 0
+      retries: 10
+      delay: 5
+      changed_when: false

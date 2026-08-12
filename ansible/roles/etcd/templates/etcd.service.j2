@@ -1,0 +1,28 @@
+[Unit]
+Description=etcd
+Documentation=https://github.com/etcd-io/etcd
+
+[Service]
+ExecStart={{ install_dir }}/etcd \
+  --name {{ ec2_tags.Name }} \
+  --cert-file={{ etcd_config_dir }}/etcd.pem \
+  --key-file={{ etcd_config_dir }}/etcd-key.pem \
+  --peer-cert-file={{ etcd_config_dir }}/etcd.pem \
+  --peer-key-file={{ etcd_config_dir }}/etcd-key.pem \
+  --trusted-ca-file={{ etcd_config_dir }}/etcd-ca.pem \
+  --peer-trusted-ca-file={{ etcd_config_dir }}/etcd-ca.pem \
+  --peer-client-cert-auth \
+  --client-cert-auth \
+  --initial-advertise-peer-urls https://{{ controller_private_ips[ec2_tags.Name] }}:2380 \
+  --listen-peer-urls https://{{ controller_private_ips[ec2_tags.Name] }}:2380 \
+  --listen-client-urls https://{{ controller_private_ips[ec2_tags.Name] }}:2379,https://127.0.0.1:2379 \
+  --advertise-client-urls https://{{ controller_private_ips[ec2_tags.Name] }}:2379 \
+  --initial-cluster-token etcd-cluster-0 \
+  --initial-cluster {{ etcd_initial_cluster }} \
+  --initial-cluster-state new \
+  --data-dir={{ etcd_data_dir }}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

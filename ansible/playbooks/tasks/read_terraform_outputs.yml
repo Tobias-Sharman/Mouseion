@@ -1,0 +1,15 @@
+- name: Read Terraform outputs
+  ansible.builtin.command:
+    cmd: "terraform -chdir={{ playbook_dir }}/../../terraform output -json"
+  register: tf_outputs
+  changed_when: false
+- name: Expose Terraform outputs as facts
+  ansible.builtin.set_fact:
+    apiserver_external_address: "{{ (tf_outputs.stdout | from_json).apiserver_external_address.value }}"
+    apiserver_internal_address: "{{ (tf_outputs.stdout | from_json).apiserver_internal_address.value }}"
+    apiserver_external_san: "{{ (tf_outputs.stdout | from_json).apiserver_external_san.value }}"
+    apiserver_internal_san: "{{ (tf_outputs.stdout | from_json).apiserver_internal_san.value }}"
+    controller_private_ips: "{{ (tf_outputs.stdout | from_json).controller_private_ips.value }}"
+    worker_private_ips: "{{ (tf_outputs.stdout | from_json).worker_private_ips.value }}"
+    etcd_servers: "{{ (tf_outputs.stdout | from_json).etcd_servers.value }}"
+    etcd_initial_cluster: "{{ (tf_outputs.stdout | from_json).etcd_initial_cluster.value }}"

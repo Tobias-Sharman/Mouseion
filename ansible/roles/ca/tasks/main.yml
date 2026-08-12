@@ -5,15 +5,18 @@
     mode: "0700"
 - name: Generate CA private key
   community.crypto.openssl_privatekey:
-    path: "{{ cert_dir }}/ca-key.pem"
+    path: "{{ cert_dir }}/{{ item.name }}-key.pem"
     type: RSA
     size: 4096
     mode: "0600"
+  loop: "{{ ca_definitions }}"
+  loop_control:
+    label: "{{ item.name }}"
 - name: Generate CA CSR
   community.crypto.openssl_csr:
-    path: "{{ cert_dir }}/ca.csr"
-    privatekey_path: "{{ cert_dir }}/ca-key.pem"
-    common_name: "{{ cluster_name }}-ca"
+    path: "{{ cert_dir }}/{{ item.name }}.csr"
+    privatekey_path: "{{ cert_dir }}/{{ item.name }}-key.pem"
+    common_name: "{{ item.common_name }}"
     basic_constraints:
       - "CA:TRUE"
     basic_constraints_critical: true
@@ -21,10 +24,16 @@
       - keyCertSign
       - digitalSignature
     key_usage_critical: true
+  loop: "{{ ca_definitions }}"
+  loop_control:
+    label: "{{ item.name }}"
 - name: Self-sign the CA certificate
   community.crypto.x509_certificate:
-    path: "{{ cert_dir }}/ca.pem"
-    privatekey_path: "{{ cert_dir }}/ca-key.pem"
-    csr_path: "{{ cert_dir }}/ca.csr"
+    path: "{{ cert_dir }}/{{ item.name }}.pem"
+    privatekey_path: "{{ cert_dir }}/{{ item.name }}-key.pem"
+    csr_path: "{{ cert_dir }}/{{ item.name }}.csr"
     provider: selfsigned
     selfsigned_not_after: "+{{ cert_days }}d"
+  loop: "{{ ca_definitions }}"
+  loop_control:
+    label: "{{ item.name }}"

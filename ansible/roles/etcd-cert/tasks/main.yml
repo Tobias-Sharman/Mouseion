@@ -1,0 +1,44 @@
+- name: Generate etcd private key
+  community.crypto.openssl_privatekey:
+    path: "{{ cert_dir }}/etcd-key.pem"
+    type: RSA
+    size: 2048
+    mode: "0600"
+- name: Build etcd SAN list
+  ansible.builtin.set_fact:
+    etcd_sans: "{{ ['DNS:localhost', 'IP:127.0.0.1'] + (controller_private_ips.values() | map('regex_replace', '^', 'IP:') | list) }}"
+- name: Generate etcd CSR
+  community.crypto.openssl_csr:
+    path: "{{ cert_dir }}/etcd.csr"
+    privatekey_path: "{{ cert_dir }}/etcd-key.pem"
+    common_name: "etcd"
+    organization_name: "Kubernetes"
+    subject_alt_name: "{{ etcd_sans }}"
+- name: Sign etcd certificate with the etcd CA
+  community.crypto.x509_certificate:
+    path: "{{ cert_dir }}/etcd.pem"
+    csr_path: "{{ cert_dir }}/etcd.csr"
+    provider: ownca
+    ownca_path: "{{ cert_dir }}/etcd-ca.pem"
+    ownca_privatekey_path: "{{ cert_dir }}/etcd-ca-key.pem"
+    ownca_not_after: "+{{ cert_days }}d"
+- name: Generate API server etcd client private key
+  community.crypto.openssl_privatekey:
+    path: "{{ cert_dir }}/kube-apiserver-etcd-client-key.pem"
+    type: RSA
+    size: 2048
+    mode: "0600"
+- name: Generate API server etcd client CSR
+  community.crypto.openssl_csr:
+    path: "{{ cert_dir }}/kube-apiserver-etcd-client.csr"
+    privatekey_path: "{{ cert_dir }}/kube-apiserver-etcd-client-key.pem"
+    common_name: "kube-apiserver-etcd-client"
+    organization_name: "Kubernetes"
+- name: Sign API server etcd client certificate with the etcd CA
+  community.crypto.x509_certificate:
+    path: "{{ cert_dir }}/kube-apiserver-etcd-client.pem"
+    csr_path: "{{ cert_dir }}/kube-apiserver-etcd-client.csr"
+    provider: ownca
+    ownca_path: "{{ cert_dir }}/etcd-ca.pem"
+    ownca_privatekey_path: "{{ cert_dir }}/etcd-ca-key.pem"
+    ownca_not_after: "+{{ cert_days }}d"

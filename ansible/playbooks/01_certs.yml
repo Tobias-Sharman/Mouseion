@@ -3,19 +3,10 @@
   connection: local
   gather_facts: false
   pre_tasks:
-    - name: Read Terraform outputs
-      ansible.builtin.command:
-        cmd: "terraform -chdir={{ playbook_dir }}/../../terraform output -json"
-      register: tf_outputs
-      changed_when: false
-    - name: Expose apiserver addresses as facts
-      ansible.builtin.set_fact:
-        apiserver_external_address: "{{ (tf_outputs.stdout | from_json).apiserver_external_address.value }}"
-        apiserver_internal_address: "{{ (tf_outputs.stdout | from_json).apiserver_internal_address.value }}"
-        apiserver_external_san: "{{ (tf_outputs.stdout | from_json).apiserver_external_san.value }}"
-        apiserver_internal_san: "{{ (tf_outputs.stdout | from_json).apiserver_internal_san.value }}"
+    - ansible.builtin.import_tasks: tasks/read_terraform_outputs.yml
   roles:
     - ca
     - component-certs
     - apiserver-cert
+    - etcd-cert
     - kubelet-certs

@@ -14,11 +14,11 @@
     common_name: "kubernetes"
     organization_name: "Kubernetes"
     subject_alt_name: "{{ apiserver_sans }}"
-- name: Sign API server certificate with the CA
+- name: Sign API server certificate with the Kubernetes CA
   community.crypto.x509_certificate:
     path: "{{ cert_dir }}/kubernetes.pem"
     csr_path: "{{ cert_dir }}/kubernetes.csr"
     provider: ownca
-    ownca_path: "{{ cert_dir }}/ca.pem"
-    ownca_privatekey_path: "{{ cert_dir }}/ca-key.pem"
+    ownca_path: "{{ cert_dir }}/kubernetes-ca.pem"
+    ownca_privatekey_path: "{{ cert_dir }}/kubernetes-ca-key.pem"
     ownca_not_after: "+{{ cert_days }}d"
