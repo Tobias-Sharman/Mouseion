@@ -1,0 +1,37 @@
+[project]
+name = "mouseion-tools"
+version = "0.1.0"
+description = "Python tooling for the Mouseion cloud/home server project (Ansible collection dependencies)"
+requires-python = ">=3.14"
+dependencies = [
+    "boto3>=1.43.59",
+    "kubernetes>=36.0.3",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "A",
+    "ANN",
+    "B",
+    "C4",
+    "E",
+    "F",
+    "I",
+    "N",
+    "RUF",
+    "S",
+    "SIM",
+    "UP",
+    "W",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.basedpyright]
+typeCheckingMode = "strict"
