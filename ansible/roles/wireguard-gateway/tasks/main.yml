@@ -1,0 +1,91 @@
+- name: Install wireguard-tools
+  ansible.builtin.apt:
+    name: wireguard-tools
+    state: present
+    update_cache: true
+- name: Template sysctl config to enable IP forwarding
+  ansible.builtin.template:
+    src: 99_wireguard.conf.j2
+    dest: /etc/sysctl.d/99-wireguard.conf
+    mode: "0644"
+- name: Ensure IP forwarding is active
+  ansible.builtin.command: sysctl --system
+  changed_when: false
+- name: Create local WireGuard key directory
+  ansible.builtin.file:
+    path: "{{ wireguard_dir }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+- name: Check for existing gateway private key
+  ansible.builtin.stat:
+    path: "{{ wireguard_dir }}/gateway.key"
+  register: gateway_key_stat
+  delegate_to: localhost
+  become: false
+- name: Generate gateway private key
+  ansible.builtin.shell: "umask 077 && wg genkey > {{ wireguard_dir }}/gateway.key"
+  when: not gateway_key_stat.stat.exists
+  delegate_to: localhost
+  become: false
+- name: Derive gateway public key
+  ansible.builtin.shell: "wg pubkey < {{ wireguard_dir }}/gateway.key > {{ wireguard_dir }}/gateway.pub"
+  changed_when: false
+  delegate_to: localhost
+  become: false
+- name: Check for existing peer private keys
+  ansible.builtin.stat:
+    path: "{{ wireguard_dir }}/{{ item.name }}.key"
+  register: peer_key_stat
+  loop: "{{ wireguard_peers }}"
+  loop_control:
+    label: "{{ item.name }}"
+  delegate_to: localhost
+  become: false
+- name: Generate peer private keys
+  ansible.builtin.shell: "umask 077 && wg genkey > {{ wireguard_dir }}/{{ item.item.name }}.key"
+  loop: "{{ peer_key_stat.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: not item.stat.exists
+  delegate_to: localhost
+  become: false
+- name: Derive peer public keys
+  ansible.builtin.shell: "wg pubkey < {{ wireguard_dir }}/{{ item.name }}.key > {{ wireguard_dir }}/{{ item.name }}.pub"
+  changed_when: false
+  loop: "{{ wireguard_peers }}"
+  loop_control:
+    label: "{{ item.name }}"
+  delegate_to: localhost
+  become: false
+- name: Copy gateway private key to the gateway
+  ansible.builtin.copy:
+    src: "{{ wireguard_dir }}/gateway.key"
+    dest: /etc/wireguard/gateway.key
+    mode: "0600"
+  notify: restart wireguard
+- name: Template WireGuard interface config
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: "0600"
+  notify: restart wireguard
+- name: Enable and start WireGuard
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    daemon_reload: true
+    enabled: true
+    state: started
+- name: Template client configs
+  ansible.builtin.template:
+    src: client.conf.j2
+    dest: "{{ wireguard_dir }}/{{ item.name }}.conf"
+    mode: "0600"
+  vars:
+    peer: "{{ item }}"
+  loop: "{{ wireguard_peers }}"
+  loop_control:
+    label: "{{ item.name }}"
+  delegate_to: localhost
+  become: false

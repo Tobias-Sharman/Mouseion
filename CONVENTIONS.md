@@ -12,7 +12,7 @@ fashions.
 | What                                                 | Convention | Example                                                 |
 | ---------------------------------------------------- | ---------- | -----------------------------------------------------   |
 | Directories                                          | kebab-case | `roles/kube-apiserver/`                                 |
-| Files                                                | snake_case | `05_control_plane.yml`, `kube_apiserver_service.j2`     |
+| Files                                                | snake_case | `06_control_plane.yml`, `kube_apiserver_service.j2`     |
 | Generated certs, keys, kubeconfigs                   | kebab-case | `kube-controller-manager.pem`, `service-account-key.pem`|
 
 *For code related stuff see below.*

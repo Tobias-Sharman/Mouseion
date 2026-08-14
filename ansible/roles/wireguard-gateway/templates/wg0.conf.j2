@@ -1,0 +1,14 @@
+[Interface]
+PrivateKey = {{ lookup('file', wireguard_dir + '/gateway.key') }}
+Address = {{ vpn_gateway_tunnel_ip }}/24
+ListenPort = 51820
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
+
+{% for peer in wireguard_peers %}
+[Peer]
+# {{ peer.name }}
+PublicKey = {{ lookup('file', wireguard_dir + '/' + peer.name + '.pub') }}
+AllowedIPs = {{ peer.tunnel_ip }}/32
+
+{% endfor %}

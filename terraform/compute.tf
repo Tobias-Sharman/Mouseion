@@ -18,13 +18,12 @@ resource "aws_key_pair" "main" {
   public_key = file(var.public_key_path)
 }
 
-# TODO: move to private subnet + security group once VPN is set up
 resource "aws_instance" "controller" {
   count                  = var.master_count
   ami                    = data.aws_ami.debian.id
   instance_type          = var.master_instance_type
-  subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.public.id]
+  subnet_id              = aws_subnet.private.id
+  vpc_security_group_ids = [aws_security_group.private.id]
   key_name               = aws_key_pair.main.key_name
 
   tags = { Name = "${var.project_name}-controller-${count.index}", Project = var.project_name, Role = "controller" }

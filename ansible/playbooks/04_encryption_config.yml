@@ -3,11 +3,16 @@
   connection: local
   gather_facts: false
   tasks:
+    - name: Check for existing encryption config
+      ansible.builtin.stat:
+        path: "{{ cert_dir }}/encryption_config.yml"
+      register: encryption_config_stat
     - name: Generate encryption key
       ansible.builtin.command: openssl rand -base64 32
       register: encryption_key_result
       changed_when: false
       no_log: true
+      when: not encryption_config_stat.stat.exists
     - name: Write encryption config
       ansible.builtin.template:
         src: encryption_config.yml.j2
@@ -16,3 +21,4 @@
       vars:
         encryption_key: "{{ encryption_key_result.stdout }}"
       no_log: true
+      when: not encryption_config_stat.stat.exists

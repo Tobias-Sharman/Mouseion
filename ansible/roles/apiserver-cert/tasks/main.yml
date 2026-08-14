@@ -6,7 +6,7 @@
     mode: "0600"
 - name: Build API server SAN list
   ansible.builtin.set_fact:
-    apiserver_sans: "{{ ['DNS:kubernetes', 'DNS:kubernetes.default', 'DNS:kubernetes.default.svc', 'DNS:kubernetes.default.svc.cluster.local', 'DNS:localhost', 'IP:127.0.0.1', 'IP:' + service_cluster_ip, apiserver_external_san, apiserver_internal_san] }}"
+    apiserver_sans: "{{ ['DNS:kubernetes', 'DNS:kubernetes.default', 'DNS:kubernetes.default.svc', 'DNS:kubernetes.default.svc.cluster.local', 'DNS:localhost', 'IP:127.0.0.1', 'IP:' + service_cluster_ip, apiserver_internal_san] }}"
 - name: Generate API server CSR
   community.crypto.openssl_csr:
     path: "{{ cert_dir }}/kubernetes.csr"

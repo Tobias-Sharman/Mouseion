@@ -1,0 +1,12 @@
+- name: Bootstrap VPN gateway
+  hosts: vpn
+  become: true
+  gather_facts: true
+  pre_tasks:
+    - ansible.builtin.import_tasks: tasks/read_terraform_outputs.yml
+      delegate_to: localhost
+      run_once: true
+      become: false
+  roles:
+    - wireguard-gateway
+    - nat-gateway

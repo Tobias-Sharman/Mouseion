@@ -2,8 +2,12 @@ ansible_user: admin
 cluster_name: mouseion
 cert_dir: "{{ playbook_dir }}/../certs"
 cert_days: 3650
+wireguard_dir: "{{ playbook_dir }}/../wireguard"
+wireguard_peers:
+  - name: admin-laptop
+    tunnel_ip: 10.8.0.2
 service_cluster_ip_range: "10.206.0.0/24"
-pod_cidr: "10.206.1.0/24"
+cluster_dns_ip: "10.206.0.10"
 kube_version: "1.36.3"
 install_dir: /usr/local/bin
 kube_config_dir: /etc/kubernetes/pki

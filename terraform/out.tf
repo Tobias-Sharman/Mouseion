@@ -1,7 +1,3 @@
-output "controller_public_ip" {
-  value = aws_instance.controller[*].public_ip
-}
-
 output "web_public_ip" {
   value = aws_instance.web.public_ip
 }
@@ -10,16 +6,8 @@ output "db_private_ip" {
   value = aws_instance.db.private_ip
 }
 
-output "apiserver_external_address" {
-  value = local.apiserver_external_address
-}
-
 output "apiserver_internal_address" {
   value = local.apiserver_internal_address
-}
-
-output "apiserver_external_san" {
-  value = local.apiserver_external_san
 }
 
 output "apiserver_internal_san" {
@@ -43,4 +31,28 @@ output "etcd_servers" {
 
 output "etcd_initial_cluster" {
   value = join(",", [for i in range(var.master_count) : "${aws_instance.controller[i].tags.Name}=https://${aws_instance.controller[i].private_ip}:2380"])
+}
+
+output "pod_cidr" {
+  value = var.pod_cidr
+}
+
+output "worker_pod_cidrs" {
+  value = local.worker_pod_cidrs
+}
+
+output "vpn_public_ip" {
+  value = aws_eip.vpn.public_ip
+}
+
+output "vpn_gateway_tunnel_ip" {
+  value = cidrhost(var.vpn_tunnel_cidr, 1)
+}
+
+output "vpc_cidr" {
+  value = var.vpc_cidr
+}
+
+output "vpc_dns_resolver" {
+  value = cidrhost(var.vpc_cidr, 2)
 }

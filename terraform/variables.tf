@@ -27,13 +27,6 @@ variable "vpc_cidr" {
   default     = "10.111.0.0/23"
 }
 
-# TODO: Fix on VPN implementation
-variable "ssh_source_cidr" {
-  description = "CIDR allowed to SSH and reach the API server. Restrict to your own IP/32 rather than leaving this open"
-  type        = string
-  default     = "0.0.0.0/0"
-}
-
 variable "master_instance_type" {
   description = "Instance type for the control plane node(s)"
   type        = string
@@ -55,4 +48,22 @@ variable "db_instance_type" {
 variable "public_key_path" {
   description = "Path to the public key for cluster SSH access"
   type        = string
+}
+
+variable "vpn_tunnel_cidr" {
+  description = "CIDR block for the WireGuard tunnel network"
+  type        = string
+  default     = "10.8.0.0/24"
+}
+
+variable "vpn_instance_type" {
+  description = "Defaults to t3.micro for portability, but for lower cost t3.nano can be used but is untested"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "pod_cidr" {
+  description = "CIDR block for the whole cluster's pod network. Third octet is a group index, one /24 per worker node in increasing order starting at 1 (group 0 is reserved for service_cluster_ip_range), fourth octet indexes members (pod IPs) within that node's group"
+  type        = string
+  default     = "10.206.0.0/16"
 }

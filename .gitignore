@@ -10,6 +10,7 @@
 /test-files/
 
 ansible/certs/
+ansible/wireguard/
 *.retry
 
 

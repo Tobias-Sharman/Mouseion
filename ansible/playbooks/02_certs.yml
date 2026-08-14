@@ -9,4 +9,3 @@
     - component-certs
     - apiserver-cert
     - etcd-cert
-    - kubelet-certs

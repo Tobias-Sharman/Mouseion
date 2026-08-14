@@ -5,11 +5,15 @@
   changed_when: false
 - name: Expose Terraform outputs as facts
   ansible.builtin.set_fact:
-    apiserver_external_address: "{{ (tf_outputs.stdout | from_json).apiserver_external_address.value }}"
     apiserver_internal_address: "{{ (tf_outputs.stdout | from_json).apiserver_internal_address.value }}"
-    apiserver_external_san: "{{ (tf_outputs.stdout | from_json).apiserver_external_san.value }}"
     apiserver_internal_san: "{{ (tf_outputs.stdout | from_json).apiserver_internal_san.value }}"
     controller_private_ips: "{{ (tf_outputs.stdout | from_json).controller_private_ips.value }}"
     worker_private_ips: "{{ (tf_outputs.stdout | from_json).worker_private_ips.value }}"
     etcd_servers: "{{ (tf_outputs.stdout | from_json).etcd_servers.value }}"
     etcd_initial_cluster: "{{ (tf_outputs.stdout | from_json).etcd_initial_cluster.value }}"
+    pod_cidr: "{{ (tf_outputs.stdout | from_json).pod_cidr.value }}"
+    worker_pod_cidrs: "{{ (tf_outputs.stdout | from_json).worker_pod_cidrs.value }}"
+    vpc_cidr: "{{ (tf_outputs.stdout | from_json).vpc_cidr.value }}"
+    vpc_dns_resolver: "{{ (tf_outputs.stdout | from_json).vpc_dns_resolver.value }}"
+    vpn_public_ip: "{{ (tf_outputs.stdout | from_json).vpn_public_ip.value }}"
+    vpn_gateway_tunnel_ip: "{{ (tf_outputs.stdout | from_json).vpn_gateway_tunnel_ip.value }}"

@@ -1,24 +1,31 @@
+- name: Check for existing kube-scheduler binary
+  ansible.builtin.stat:
+    path: "{{ install_dir }}/kube-scheduler"
+  register: kube_scheduler_stat
 - name: Download kube-scheduler binary
   ansible.builtin.get_url:
     url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/amd64/kube-scheduler"
     dest: "{{ install_dir }}/kube-scheduler"
     mode: "0755"
+  when: not kube_scheduler_stat.stat.exists
 - name: Copy kube-scheduler kubeconfig
   ansible.builtin.copy:
     src: "{{ cert_dir }}/kube-scheduler.kubeconfig"
     dest: "{{ kube_config_dir }}/kube-scheduler.kubeconfig"
     mode: "0600"
+  notify: restart kube-scheduler
 - name: Template kube-scheduler config
   ansible.builtin.template:
     src: kube_scheduler_config.yml.j2
     dest: "{{ kube_config_dir }}/kube-scheduler-config.yml"
     mode: "0644"
+  notify: restart kube-scheduler
 - name: Template kube-scheduler systemd unit
   ansible.builtin.template:
     src: kube_scheduler.service.j2
     dest: /etc/systemd/system/kube-scheduler.service
     mode: "0644"
-  notify: reload kube-scheduler systemd
+  notify: restart kube-scheduler
 - name: Enable and start kube-scheduler
   ansible.builtin.systemd:
     name: kube-scheduler

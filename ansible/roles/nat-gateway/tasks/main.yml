@@ -1,0 +1,20 @@
+- name: Pre-seed iptables-persistent debconf answers
+  ansible.builtin.debconf:
+    name: iptables-persistent
+    question: "{{ item }}"
+    value: "false"
+    vtype: boolean
+  loop:
+    - iptables-persistent/autosave_v4
+    - iptables-persistent/autosave_v6
+- name: Install iptables-persistent
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+    update_cache: true
+- name: Add NAT masquerade rule for private-subnet internet egress
+  ansible.builtin.shell: >
+    iptables -t nat -C POSTROUTING -o {{ ansible_default_ipv4.interface }} ! -d {{ vpc_cidr }} -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} ! -d {{ vpc_cidr }} -j MASQUERADE
+
+  changed_when: false
+  notify: save iptables rules

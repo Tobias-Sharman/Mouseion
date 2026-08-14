@@ -1,0 +1,92 @@
+- name: Check for existing bootstrap kubeconfig
+  ansible.builtin.stat:
+    path: "{{ cert_dir }}/bootstrap.kubeconfig"
+  register: bootstrap_kubeconfig_stat
+- name: Generate bootstrap token ID
+  ansible.builtin.command: openssl rand -hex 3
+  register: token_id_result
+  changed_when: false
+  no_log: true
+  when: not bootstrap_kubeconfig_stat.stat.exists
+- name: Generate bootstrap token secret
+  ansible.builtin.command: openssl rand -hex 8
+  register: token_secret_result
+  changed_when: false
+  no_log: true
+  when: not bootstrap_kubeconfig_stat.stat.exists
+- name: Create bootstrap token Secret
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cert_dir }}/admin.kubeconfig"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "bootstrap-token-{{ token_id_result.stdout }}"
+        namespace: kube-system
+      type: bootstrap.kubernetes.io/token
+      stringData:
+        token-id: "{{ token_id_result.stdout }}"
+        token-secret: "{{ token_secret_result.stdout }}"
+        usage-bootstrap-authentication: "true"
+        usage-bootstrap-signing: "true"
+  no_log: true
+  when: not bootstrap_kubeconfig_stat.stat.exists
+- name: Allow bootstrappers to create CSRs
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cert_dir }}/admin.kubeconfig"
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: create-csrs-for-bootstrapping
+      subjects:
+        - kind: Group
+          name: system:bootstrappers
+          apiGroup: rbac.authorization.k8s.io
+      roleRef:
+        kind: ClusterRole
+        name: system:node-bootstrapper
+        apiGroup: rbac.authorization.k8s.io
+- name: Allow auto-approval of bootstrapper client-cert CSRs
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cert_dir }}/admin.kubeconfig"
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: auto-approve-csrs-for-group
+      subjects:
+        - kind: Group
+          name: system:bootstrappers
+          apiGroup: rbac.authorization.k8s.io
+      roleRef:
+        kind: ClusterRole
+        name: system:certificates.k8s.io:certificatesigningrequests:nodeclient
+        apiGroup: rbac.authorization.k8s.io
+- name: Allow auto-approval of node client-cert renewals
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cert_dir }}/admin.kubeconfig"
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: auto-approve-renewals-for-nodes
+      subjects:
+        - kind: Group
+          name: system:nodes
+          apiGroup: rbac.authorization.k8s.io
+      roleRef:
+        kind: ClusterRole
+        name: system:certificates.k8s.io:certificatesigningrequests:selfnodeclient
+        apiGroup: rbac.authorization.k8s.io
+- name: Generate bootstrap kubeconfig
+  ansible.builtin.template:
+    src: bootstrap_kubeconfig.yml.j2
+    dest: "{{ cert_dir }}/bootstrap.kubeconfig"
+    mode: "0600"
+  no_log: true
+  when: not bootstrap_kubeconfig_stat.stat.exists

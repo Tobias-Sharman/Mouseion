@@ -1,0 +1,22 @@
+- name: Configure cluster for kubelet bootstrapping
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  pre_tasks:
+    - ansible.builtin.import_tasks: tasks/read_terraform_outputs.yml
+  roles:
+    - bootstrap-token
+- name: Install container runtime on workers
+  hosts: worker
+  become: true
+  gather_facts: true
+  pre_tasks:
+    - ansible.builtin.import_tasks: tasks/read_terraform_outputs.yml
+      delegate_to: localhost
+      run_once: true
+      become: false
+  roles:
+    - cni-networking
+    - containerd
+    - kubelet
+    - kube-proxy

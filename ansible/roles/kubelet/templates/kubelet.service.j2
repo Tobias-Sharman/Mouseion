@@ -1,0 +1,19 @@
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/kubernetes/kubernetes
+After=containerd.service
+Requires=containerd.service
+
+[Service]
+ExecStart={{ install_dir }}/kubelet \
+  --bootstrap-kubeconfig={{ kube_config_dir }}/bootstrap.kubeconfig \
+  --kubeconfig={{ kube_config_dir }}/kubelet.kubeconfig \
+  --config={{ kube_config_dir }}/kubelet-config.yml \
+  --cert-dir=/var/lib/kubelet/pki \
+  --hostname-override={{ ec2_tags.Name }} \
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

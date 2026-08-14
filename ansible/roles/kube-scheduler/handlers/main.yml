@@ -1,3 +1,4 @@
-- name: reload kube-scheduler systemd
+- name: restart kube-scheduler
   ansible.builtin.systemd:
-    daemon_reload: true
+    name: kube-scheduler
+    state: restarted

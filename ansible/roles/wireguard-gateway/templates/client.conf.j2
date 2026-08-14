@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{ lookup('file', wireguard_dir + '/' + peer.name + '.key') }}
+Address = {{ peer.tunnel_ip }}/24
+DNS = {{ vpc_dns_resolver }}
+
+[Peer]
+PublicKey = {{ lookup('file', wireguard_dir + '/gateway.pub') }}
+Endpoint = {{ vpn_public_ip }}:51820
+AllowedIPs = {{ vpc_cidr }}
+PersistentKeepalive = 25

@@ -11,4 +11,4 @@ keyed_groups:
     prefix: ""
     separator: ""
 compose:
-  ansible_host: public_ip_address | default(private_ip_address)
+  ansible_host: private_ip_address
