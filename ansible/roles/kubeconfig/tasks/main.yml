@@ -7,6 +7,6 @@
     kc_name: "{{ item.name }}"
     kc_server: "{{ item.server }}"
     kc_cert_prefix: "{{ item.name }}"
-  loop: "{{ kubeconfigs }}"
+  loop: "{{ kubeconfig_kubeconfigs }}"
   loop_control:
     label: "{{ item.name }}"

@@ -8,6 +8,8 @@ wireguard_peers:
     tunnel_ip: 10.8.0.2
 service_cluster_ip_range: "10.206.0.0/24"
 cluster_dns_ip: "10.206.0.10"
+cluster_domain: "cluster.local"
 kube_version: "1.36.3"
+binary_arch: "arm64"
 install_dir: /usr/local/bin
 kube_config_dir: /etc/kubernetes/pki

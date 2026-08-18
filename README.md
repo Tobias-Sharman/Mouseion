@@ -11,10 +11,10 @@ No current proper build and install script, so Postgres (via Homebrew),
 first version is in place such scripts will be provided.
 
 ```bash
-./scripts/setup.sh   # start postgres, create db, run migrations, sqlc generate,
+./scripts/local-dev/setup.sh   # start postgres, create db, run migrations, sqlc generate,
 create data dirs
-./scripts/start.sh   # start postgres, run migrations, go run ./cmd/server
-./scripts/stop.sh    # stop postgres
+./scripts/local-dev/start.sh   # start postgres, run migrations, go run ./cmd/server
+./scripts/local-dev/stop.sh    # stop postgres
 
 curl http://localhost:8080/healthz
 curl -F file=@path/to/file.jpg http://localhost:8080/upload

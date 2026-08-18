@@ -12,6 +12,7 @@
 ansible/certs/
 ansible/wireguard/
 *.retry
+.ansible/
 
 
 .terraform/

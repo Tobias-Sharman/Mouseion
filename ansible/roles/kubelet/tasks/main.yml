@@ -7,76 +7,36 @@
   ansible.builtin.stat:
     path: "{{ install_dir }}/kubelet"
   register: kubelet_stat
-- name: Download kubelet binary directly (web only)
-  when:
-    - not kubelet_stat.stat.exists
-    - inventory_hostname in groups['serapeum_web']
-  block:
-    - name: Create download staging directory
-      ansible.builtin.file:
-        path: /tmp/kubelet-dist
-        state: directory
-        mode: "0755"
-    - name: Download kubelet binary
-      ansible.builtin.get_url:
-        url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/amd64/kubelet"
-        dest: /tmp/kubelet-dist/kubelet
-        mode: "0755"
-    - name: Start temporary file server
-      ansible.builtin.shell: "nohup python3 -m http.server 8080 --directory /tmp/kubelet-dist > /tmp/kubelet-dist/server.log 2>&1 & echo $! > /tmp/kubelet-dist/server.pid"
-      changed_when: true
-- name: Fetch kubelet binary from web (db only)
-  when:
-    - not kubelet_stat.stat.exists
-    - inventory_hostname in groups['serapeum_db']
-  block:
-    - name: Create download staging directory
-      ansible.builtin.file:
-        path: /tmp/kubelet-dist
-        state: directory
-        mode: "0755"
-    - name: Fetch kubelet binary from web
-      ansible.builtin.get_url:
-        url: "http://{{ worker_private_ips['serapeum-web'] }}:8080/kubelet"
-        dest: /tmp/kubelet-dist/kubelet
-        mode: "0755"
-- name: Stop temporary file server (web only)
-  ansible.builtin.shell: "kill $(cat /tmp/kubelet-dist/server.pid) || true"
-  when:
-    - not kubelet_stat.stat.exists
-    - inventory_hostname in groups['serapeum_web']
-  changed_when: false
-- name: Install kubelet binary
-  ansible.builtin.copy:
-    src: /tmp/kubelet-dist/kubelet
+- name: Download kubelet binary
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/{{ binary_arch }}/kubelet"
     dest: "{{ install_dir }}/kubelet"
     mode: "0755"
-    remote_src: true
   when: not kubelet_stat.stat.exists
 - name: Copy Kubernetes CA
   ansible.builtin.copy:
     src: "{{ cert_dir }}/kubernetes-ca.pem"
     dest: "{{ kube_config_dir }}/kubernetes-ca.pem"
     mode: "0600"
-  notify: restart kubelet
+  notify: Restart kubelet
 - name: Copy bootstrap kubeconfig
   ansible.builtin.copy:
     src: "{{ cert_dir }}/bootstrap.kubeconfig"
     dest: "{{ kube_config_dir }}/bootstrap.kubeconfig"
     mode: "0600"
-  notify: restart kubelet
+  notify: Restart kubelet
 - name: Template kubelet config
   ansible.builtin.template:
     src: kubelet_config.yml.j2
     dest: "{{ kube_config_dir }}/kubelet-config.yml"
     mode: "0644"
-  notify: restart kubelet
+  notify: Restart kubelet
 - name: Template kubelet systemd unit
   ansible.builtin.template:
     src: kubelet.service.j2
     dest: /etc/systemd/system/kubelet.service
     mode: "0644"
-  notify: restart kubelet
+  notify: Restart kubelet
 - name: Enable and start kubelet
   ansible.builtin.systemd:
     name: kubelet

@@ -9,7 +9,7 @@
   register: kube_apiserver_stat
 - name: Download kube-apiserver binary
   ansible.builtin.get_url:
-    url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/amd64/kube-apiserver"
+    url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/{{ binary_arch }}/kube-apiserver"
     dest: "{{ install_dir }}/kube-apiserver"
     mode: "0755"
   when: not kube_apiserver_stat.stat.exists
@@ -18,7 +18,7 @@
     src: "{{ cert_dir }}/kubernetes-ca.pem"
     dest: "{{ kube_config_dir }}/kubernetes-ca.pem"
     mode: "0600"
-  notify: restart kube-apiserver
+  notify: Restart kube-apiserver
 - name: Copy API server certificate and key
   ansible.builtin.copy:
     src: "{{ cert_dir }}/{{ item }}"
@@ -27,7 +27,7 @@
   loop:
     - kubernetes.pem
     - kubernetes-key.pem
-  notify: restart kube-apiserver
+  notify: Restart kube-apiserver
 - name: Copy service-account certificate and key
   ansible.builtin.copy:
     src: "{{ cert_dir }}/{{ item }}"
@@ -36,7 +36,7 @@
   loop:
     - service-account.pem
     - service-account-key.pem
-  notify: restart kube-apiserver
+  notify: Restart kube-apiserver
 - name: Copy etcd CA and client certificate
   ansible.builtin.copy:
     src: "{{ cert_dir }}/{{ item }}"
@@ -46,22 +46,46 @@
     - etcd-ca.pem
     - kube-apiserver-etcd-client.pem
     - kube-apiserver-etcd-client-key.pem
-  notify: restart kube-apiserver
+  notify: Restart kube-apiserver
 - name: Copy encryption config
   ansible.builtin.copy:
     src: "{{ cert_dir }}/encryption_config.yml"
     dest: "{{ kube_config_dir }}/encryption_config.yml"
     mode: "0600"
-  notify: restart kube-apiserver
+  notify: Restart kube-apiserver
 - name: Template kube-apiserver systemd unit
   ansible.builtin.template:
     src: kube_apiserver.service.j2
     dest: /etc/systemd/system/kube-apiserver.service
     mode: "0644"
-  notify: restart kube-apiserver
+  notify: Restart kube-apiserver
 - name: Enable and start kube-apiserver
   ansible.builtin.systemd:
     name: kube-apiserver
     daemon_reload: true
     enabled: true
     state: started
+- name: Allow apiserver to authenticate to kubelets for exec/logs/port-forward
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cert_dir }}/admin.kubeconfig"
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: apiserver-to-kubelet
+      subjects:
+        - kind: User
+          name: kubernetes
+          apiGroup: rbac.authorization.k8s.io
+      roleRef:
+        kind: ClusterRole
+        name: system:kubelet-api-admin
+        apiGroup: rbac.authorization.k8s.io
+  register: apiserver_rbac_result
+  until: apiserver_rbac_result is succeeded
+  retries: 10
+  delay: 5
+  delegate_to: localhost
+  run_once: true
+  become: false

@@ -33,6 +33,11 @@ resource "aws_route_table" "public" {
     network_interface_id = aws_instance.vpn.primary_network_interface_id
   }
 
+  route {
+    cidr_block           = local.worker_pod_cidrs[aws_instance.db.tags.Name]
+    network_interface_id = aws_instance.db.primary_network_interface_id
+  }
+
   tags = { Name = "${var.project_name}-rt-public" }
 }
 
@@ -60,6 +65,11 @@ resource "aws_route_table" "private" {
   route {
     cidr_block           = "0.0.0.0/0"
     network_interface_id = aws_instance.vpn.primary_network_interface_id
+  }
+
+  route {
+    cidr_block           = local.worker_pod_cidrs[aws_instance.web.tags.Name]
+    network_interface_id = aws_instance.web.primary_network_interface_id
   }
 
   tags = { Name = "${var.project_name}-rt-private" }

@@ -1,0 +1,10 @@
+- name: Render CoreDNS manifest
+  ansible.builtin.template:
+    src: coredns.yml.j2
+    dest: "{{ cert_dir }}/coredns.yml"
+    mode: "0600"
+- name: Apply CoreDNS manifest
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cert_dir }}/admin.kubeconfig"
+    state: present
+    src: "{{ cert_dir }}/coredns.yml"

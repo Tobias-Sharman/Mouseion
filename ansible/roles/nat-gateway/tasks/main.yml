@@ -12,9 +12,15 @@
     name: iptables-persistent
     state: present
     update_cache: true
-- name: Add NAT masquerade rule for private-subnet internet egress
-  ansible.builtin.shell: >
-    iptables -t nat -C POSTROUTING -o {{ ansible_default_ipv4.interface }} ! -d {{ vpc_cidr }} -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} ! -d {{ vpc_cidr }} -j MASQUERADE
-
+- name: Check for existing NAT masquerade rule for private-subnet internet egress
+  ansible.builtin.command: >-
+    iptables -t nat -C POSTROUTING -o {{ ansible_facts['default_ipv4']['interface'] }} ! -d {{ vpc_cidr }} -j MASQUERADE
+  register: nat_masq_rule_check
   changed_when: false
-  notify: save iptables rules
+  failed_when: false
+- name: Add NAT masquerade rule for private-subnet internet egress
+  ansible.builtin.command: >-
+    iptables -t nat -A POSTROUTING -o {{ ansible_facts['default_ipv4']['interface'] }} ! -d {{ vpc_cidr }} -j MASQUERADE
+  when: nat_masq_rule_check.rc != 0
+  changed_when: true
+  notify: Save iptables rules

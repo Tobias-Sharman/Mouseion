@@ -16,7 +16,7 @@ resource "aws_lb_target_group" "apiserver" {
   protocol           = "TCP"
   vpc_id             = aws_vpc.main.id
   target_type        = "instance"
-  preserve_client_ip = true
+  preserve_client_ip = false
 
   health_check {
     protocol = "TCP"
@@ -46,6 +46,14 @@ resource "aws_lb_listener" "apiserver" {
 }
 
 locals {
-  apiserver_internal_address = var.master_count > 1 ? aws_lb.apiserver[0].dns_name : aws_instance.controller[0].private_ip
-  apiserver_internal_san     = var.master_count > 1 ? "DNS:${aws_lb.apiserver[0].dns_name}" : "IP:${aws_instance.controller[0].private_ip}"
+  apiserver_internal_address = (
+    var.master_count > 1
+    ? aws_lb.apiserver[0].dns_name
+    : aws_instance.controller[0].private_ip
+  )
+  apiserver_internal_san = (
+    var.master_count > 1
+    ? "DNS:${aws_lb.apiserver[0].dns_name}"
+    : "IP:${aws_instance.controller[0].private_ip}"
+  )
 }

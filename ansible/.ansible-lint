@@ -1,0 +1,12 @@
+exclude_paths:
+  - certs/
+  - wireguard/
+
+skip_list:
+  # Role names use hyphens throughout this project (kube-apiserver,
+  # cni-networking, etc.) - a deliberate, consistent convention, not
+  # something to mass-rename.
+  - role-name
+
+warn_list:
+  - run-once[task]

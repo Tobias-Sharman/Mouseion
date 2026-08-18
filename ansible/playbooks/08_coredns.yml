@@ -1,4 +1,4 @@
-- name: Generate cluster CA and certificates
+- name: Deploy CoreDNS
   hosts: localhost
   connection: local
   gather_facts: false
@@ -6,7 +6,4 @@
     - name: Read Terraform outputs
       ansible.builtin.import_tasks: tasks/read_terraform_outputs.yml
   roles:
-    - ca
-    - component-certs
-    - apiserver-cert
-    - etcd-cert
+    - coredns

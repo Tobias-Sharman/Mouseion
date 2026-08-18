@@ -10,7 +10,7 @@ authentication:
 authorization:
   mode: Webhook
 cgroupDriver: systemd
-clusterDomain: "cluster.local"
+clusterDomain: "{{ cluster_domain }}"
 clusterDNS:
   - "{{ cluster_dns_ip }}"
 containerRuntimeEndpoint: "unix:///run/containerd/containerd.sock"

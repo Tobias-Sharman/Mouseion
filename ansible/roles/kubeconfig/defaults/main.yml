@@ -1,4 +1,4 @@
-kubeconfigs:
+kubeconfig_kubeconfigs:
   - name: admin
     server: "https://{{ apiserver_internal_address }}:6443"
   - name: kube-controller-manager

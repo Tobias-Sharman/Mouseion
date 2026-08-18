@@ -30,19 +30,19 @@ variable "vpc_cidr" {
 variable "master_instance_type" {
   description = "Instance type for the control plane node(s)"
   type        = string
-  default     = "t3.small"
+  default     = "t4g.small"
 }
 
 variable "web_instance_type" {
   description = "Instance type for the web node"
   type        = string
-  default     = "t3.small"
+  default     = "t4g.small"
 }
 
 variable "db_instance_type" {
   description = "Instance type for the DB node"
   type        = string
-  default     = "t3.small"
+  default     = "t4g.small"
 }
 
 variable "public_key_path" {
@@ -57,13 +57,18 @@ variable "vpn_tunnel_cidr" {
 }
 
 variable "vpn_instance_type" {
-  description = "Defaults to t3.micro for portability, but for lower cost t3.nano can be used but is untested"
+  description = "Defaults to t4g.micro for portability, but for lower cost t4g.nano can be used but is untested"
   type        = string
-  default     = "t3.micro"
+  default     = "t4g.micro"
 }
 
 variable "pod_cidr" {
-  description = "CIDR block for the whole cluster's pod network. Third octet is a group index, one /24 per worker node in increasing order starting at 1 (group 0 is reserved for service_cluster_ip_range), fourth octet indexes members (pod IPs) within that node's group"
+  description = <<-EOT
+    CIDR block for the whole cluster's pod network. Third octet is a group
+    index, one /24 per worker node in increasing order starting at 1 (group 0
+    is reserved for service_cluster_ip_range), fourth octet indexes members
+    (pod IPs) within that node's group
+  EOT
   type        = string
   default     = "10.206.0.0/16"
 }

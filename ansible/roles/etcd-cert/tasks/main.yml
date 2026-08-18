@@ -6,7 +6,9 @@
     mode: "0600"
 - name: Build etcd SAN list
   ansible.builtin.set_fact:
-    etcd_sans: "{{ ['DNS:localhost', 'IP:127.0.0.1'] + (controller_private_ips.values() | map('regex_replace', '^', 'IP:') | list) }}"
+    etcd_sans: "{{ ['DNS:localhost', 'IP:127.0.0.1'] + controller_san_ips }}"
+  vars:
+    controller_san_ips: "{{ controller_private_ips.values() | map('regex_replace', '^', 'IP:') | list }}"
 - name: Generate etcd CSR
   community.crypto.openssl_csr:
     path: "{{ cert_dir }}/etcd.csr"

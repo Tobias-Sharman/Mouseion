@@ -1,6 +1,6 @@
-- name: reload etcd systemd
+- name: Reload etcd systemd
   ansible.builtin.systemd:
     daemon_reload: true
-- name: flag etcd restart needed
+- name: Flag etcd restart needed
   ansible.builtin.debug:
-    msg: "etcd certificates or config changed on this host. Run playbooks/etcd-restart-rotation.yml manually to apply it — restarts must be done deliberately to avoid losing quorum."
+    msg: "etcd certificates or config changed on this host. Run playbooks/etcd_restart_rotation.yml manually to apply it — restarts must be done deliberately to avoid losing quorum."  # noqa: yaml[line-length]

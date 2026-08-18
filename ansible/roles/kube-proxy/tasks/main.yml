@@ -7,76 +7,36 @@
   ansible.builtin.stat:
     path: "{{ install_dir }}/kube-proxy"
   register: kube_proxy_stat
-- name: Download kube-proxy binary directly (web only)
-  when:
-    - not kube_proxy_stat.stat.exists
-    - inventory_hostname in groups['serapeum_web']
-  block:
-    - name: Create download staging directory
-      ansible.builtin.file:
-        path: /tmp/kube-proxy-dist
-        state: directory
-        mode: "0755"
-    - name: Download kube-proxy binary
-      ansible.builtin.get_url:
-        url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/amd64/kube-proxy"
-        dest: /tmp/kube-proxy-dist/kube-proxy
-        mode: "0755"
-    - name: Start temporary file server
-      ansible.builtin.shell: "nohup python3 -m http.server 8080 --directory /tmp/kube-proxy-dist > /tmp/kube-proxy-dist/server.log 2>&1 & echo $! > /tmp/kube-proxy-dist/server.pid"
-      changed_when: true
-- name: Fetch kube-proxy binary from web (db only)
-  when:
-    - not kube_proxy_stat.stat.exists
-    - inventory_hostname in groups['serapeum_db']
-  block:
-    - name: Create download staging directory
-      ansible.builtin.file:
-        path: /tmp/kube-proxy-dist
-        state: directory
-        mode: "0755"
-    - name: Fetch kube-proxy binary from web
-      ansible.builtin.get_url:
-        url: "http://{{ worker_private_ips['serapeum-web'] }}:8080/kube-proxy"
-        dest: /tmp/kube-proxy-dist/kube-proxy
-        mode: "0755"
-- name: Stop temporary file server (web only)
-  ansible.builtin.shell: "kill $(cat /tmp/kube-proxy-dist/server.pid) || true"
-  when:
-    - not kube_proxy_stat.stat.exists
-    - inventory_hostname in groups['serapeum_web']
-  changed_when: false
-- name: Install kube-proxy binary
-  ansible.builtin.copy:
-    src: /tmp/kube-proxy-dist/kube-proxy
+- name: Download kube-proxy binary
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/v{{ kube_version }}/bin/linux/{{ binary_arch }}/kube-proxy"
     dest: "{{ install_dir }}/kube-proxy"
     mode: "0755"
-    remote_src: true
   when: not kube_proxy_stat.stat.exists
 - name: Copy Kubernetes CA
   ansible.builtin.copy:
     src: "{{ cert_dir }}/kubernetes-ca.pem"
     dest: "{{ kube_config_dir }}/kubernetes-ca.pem"
     mode: "0600"
-  notify: restart kube-proxy
+  notify: Restart kube-proxy
 - name: Copy kube-proxy kubeconfig
   ansible.builtin.copy:
     src: "{{ cert_dir }}/kube-proxy.kubeconfig"
     dest: "{{ kube_config_dir }}/kube-proxy.kubeconfig"
     mode: "0600"
-  notify: restart kube-proxy
+  notify: Restart kube-proxy
 - name: Template kube-proxy config
   ansible.builtin.template:
     src: kube_proxy_config.yml.j2
     dest: "{{ kube_config_dir }}/kube-proxy-config.yml"
     mode: "0644"
-  notify: restart kube-proxy
+  notify: Restart kube-proxy
 - name: Template kube-proxy systemd unit
   ansible.builtin.template:
     src: kube_proxy.service.j2
     dest: /etc/systemd/system/kube-proxy.service
     mode: "0644"
-  notify: restart kube-proxy
+  notify: Restart kube-proxy
 - name: Enable and start kube-proxy
   ansible.builtin.systemd:
     name: kube-proxy

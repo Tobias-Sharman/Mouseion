@@ -4,12 +4,12 @@ data "aws_ami" "debian" {
 
   filter {
     name   = "name"
-    values = ["debian-12-amd64-*"] # TODO: Migrate to newer debian once working
+    values = ["debian-13-arm64-*"]
   }
 
   filter {
     name   = "architecture"
-    values = ["x86_64"] # TODO: Once working move to arm
+    values = ["arm64"]
   }
 }
 
@@ -35,6 +35,7 @@ resource "aws_instance" "web" {
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.public.id]
   key_name               = aws_key_pair.main.key_name
+  source_dest_check      = false
 
   tags = { Name = "${var.project_name}-web", Project = var.project_name, Role = "worker" }
 }
@@ -45,6 +46,7 @@ resource "aws_instance" "db" {
   subnet_id              = aws_subnet.private.id
   vpc_security_group_ids = [aws_security_group.private.id]
   key_name               = aws_key_pair.main.key_name
+  source_dest_check      = false
 
   tags = { Name = "${var.project_name}-db", Project = var.project_name, Role = "worker" }
 }

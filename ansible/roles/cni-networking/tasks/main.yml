@@ -1,12 +1,43 @@
+- name: Create CNI config directory
+  ansible.builtin.file:
+    path: /etc/cni/net.d
+    state: directory
+    mode: "0755"
 - name: Template CNI bridge config
   ansible.builtin.template:
     src: 10_bridge.conf.j2
     dest: /etc/cni/net.d/10-bridge.conf
     mode: "0644"
-  notify: restart containerd
+  notify: Restart containerd
 - name: Template CNI loopback config
   ansible.builtin.template:
     src: 99_loopback.conf.j2
     dest: /etc/cni/net.d/99-loopback.conf
     mode: "0644"
-  notify: restart containerd
+  notify: Restart containerd
+- name: Pre-seed iptables-persistent debconf answers
+  ansible.builtin.debconf:
+    name: iptables-persistent
+    question: "{{ item }}"
+    value: "false"
+    vtype: boolean
+  loop:
+    - iptables-persistent/autosave_v4
+    - iptables-persistent/autosave_v6
+- name: Install iptables-persistent
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+    update_cache: true
+- name: Check for existing pod-CIDR NAT masquerade rule
+  ansible.builtin.command: >-
+    iptables -t nat -C POSTROUTING -s {{ worker_pod_cidrs[ec2_tags.Name] }} ! -d {{ pod_cidr }} -j MASQUERADE
+  register: masq_rule_check
+  changed_when: false
+  failed_when: false
+- name: Add NAT masquerade rule for pod egress outside the cluster pod CIDR
+  ansible.builtin.command: >-
+    iptables -t nat -A POSTROUTING -s {{ worker_pod_cidrs[ec2_tags.Name] }} ! -d {{ pod_cidr }} -j MASQUERADE
+  when: masq_rule_check.rc != 0
+  changed_when: true
+  notify: Save iptables rules

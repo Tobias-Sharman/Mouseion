@@ -1,1 +1,1 @@
-service_cluster_ip: "10.206.0.1"
+service_cluster_ip: "{{ service_cluster_ip_range | regex_replace('\\.0/24$', '.1') }}"

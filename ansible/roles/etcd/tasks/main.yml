@@ -12,13 +12,13 @@
   register: etcd_stat
 - name: Download and extract etcd
   ansible.builtin.unarchive:
-    src: "https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz"
+    src: "https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-{{ binary_arch }}.tar.gz"  # noqa: yaml[line-length]
     dest: /tmp
     remote_src: true
   when: not etcd_stat.stat.exists
 - name: Install etcd binaries
   ansible.builtin.copy:
-    src: "/tmp/etcd-v{{ etcd_version }}-linux-amd64/{{ item }}"
+    src: "/tmp/etcd-v{{ etcd_version }}-linux-{{ binary_arch }}/{{ item }}"
     dest: "{{ install_dir }}/{{ item }}"
     mode: "0755"
     remote_src: true
@@ -35,15 +35,15 @@
     - etcd-ca.pem
     - etcd.pem
     - etcd-key.pem
-  notify: flag etcd restart needed
+  notify: Flag etcd restart needed
 - name: Template etcd systemd unit
   ansible.builtin.template:
     src: etcd.service.j2
     dest: /etc/systemd/system/etcd.service
     mode: "0644"
   notify:
-    - reload etcd systemd
-    - flag etcd restart needed
+    - Reload etcd systemd
+    - Flag etcd restart needed
 - name: Enable and start etcd
   ansible.builtin.systemd:
     name: etcd

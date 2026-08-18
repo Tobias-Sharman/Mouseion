@@ -12,10 +12,8 @@
   ansible.builtin.stat:
     path: /usr/local/bin/containerd
   register: containerd_stat
-- name: Download files directly (web only)
-  when:
-    - not containerd_stat.stat.exists
-    - inventory_hostname in groups['serapeum_web']
+- name: Download and install containerd, runc, and CNI plugins
+  when: not containerd_stat.stat.exists
   block:
     - name: Create download staging directory
       ansible.builtin.file:
@@ -24,66 +22,35 @@
         mode: "0755"
     - name: Download containerd archive
       ansible.builtin.get_url:
-        url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
-        dest: "/tmp/containerd-dist/containerd.tar.gz"
+        url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-{{ binary_arch }}.tar.gz"  # noqa: yaml[line-length]
+        dest: /tmp/containerd-dist/containerd.tar.gz
+        mode: "0644"
     - name: Download runc
       ansible.builtin.get_url:
-        url: "https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64"
-        dest: "/tmp/containerd-dist/runc.amd64"
+        url: "https://github.com/opencontainers/runc/releases/download/v{{ containerd_runc_version }}/runc.{{ binary_arch }}"  # noqa: yaml[line-length]
+        dest: /tmp/containerd-dist/runc.{{ binary_arch }}
+        mode: "0644"
     - name: Download CNI plugins archive
       ansible.builtin.get_url:
-        url: "https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
-        dest: "/tmp/containerd-dist/cni-plugins.tgz"
-    - name: Start temporary file server
-      ansible.builtin.shell: "nohup python3 -m http.server 8080 --directory /tmp/containerd-dist > /tmp/containerd-dist/server.log 2>&1 & echo $! > /tmp/containerd-dist/server.pid"
-      changed_when: true
-- name: Fetch files from web (db only)
-  when:
-    - not containerd_stat.stat.exists
-    - inventory_hostname in groups['serapeum_db']
-  block:
-    - name: Create download staging directory
-      ansible.builtin.file:
-        path: /tmp/containerd-dist
-        state: directory
+        url: "https://github.com/containernetworking/plugins/releases/download/v{{ containerd_cni_plugins_version }}/cni-plugins-linux-{{ binary_arch }}-v{{ containerd_cni_plugins_version }}.tgz"  # noqa: yaml[line-length]
+        dest: /tmp/containerd-dist/cni-plugins.tgz
+        mode: "0644"
+    - name: Extract containerd
+      ansible.builtin.unarchive:
+        src: /tmp/containerd-dist/containerd.tar.gz
+        dest: /usr/local
+        remote_src: true
+    - name: Install runc
+      ansible.builtin.copy:
+        src: /tmp/containerd-dist/runc.{{ binary_arch }}
+        dest: /usr/local/sbin/runc
         mode: "0755"
-    - name: Fetch containerd archive from web
-      ansible.builtin.get_url:
-        url: "http://{{ worker_private_ips['serapeum-web'] }}:8080/containerd.tar.gz"
-        dest: "/tmp/containerd-dist/containerd.tar.gz"
-    - name: Fetch runc from web
-      ansible.builtin.get_url:
-        url: "http://{{ worker_private_ips['serapeum-web'] }}:8080/runc.amd64"
-        dest: "/tmp/containerd-dist/runc.amd64"
-    - name: Fetch CNI plugins archive from web
-      ansible.builtin.get_url:
-        url: "http://{{ worker_private_ips['serapeum-web'] }}:8080/cni-plugins.tgz"
-        dest: "/tmp/containerd-dist/cni-plugins.tgz"
-- name: Extract containerd
-  ansible.builtin.unarchive:
-    src: /tmp/containerd-dist/containerd.tar.gz
-    dest: /usr/local
-    remote_src: true
-  when: not containerd_stat.stat.exists
-- name: Install runc
-  ansible.builtin.copy:
-    src: /tmp/containerd-dist/runc.amd64
-    dest: /usr/local/sbin/runc
-    mode: "0755"
-    remote_src: true
-  when: not containerd_stat.stat.exists
-- name: Extract CNI plugins
-  ansible.builtin.unarchive:
-    src: /tmp/containerd-dist/cni-plugins.tgz
-    dest: /opt/cni/bin
-    remote_src: true
-  when: not containerd_stat.stat.exists
-- name: Stop temporary file server (web only)
-  ansible.builtin.shell: "kill $(cat /tmp/containerd-dist/server.pid) || true"
-  when:
-    - not containerd_stat.stat.exists
-    - inventory_hostname in groups['serapeum_web']
-  changed_when: false
+        remote_src: true
+    - name: Extract CNI plugins
+      ansible.builtin.unarchive:
+        src: /tmp/containerd-dist/cni-plugins.tgz
+        dest: /opt/cni/bin
+        remote_src: true
 - name: Generate default containerd config
   ansible.builtin.command: containerd config default
   register: containerd_default_config
@@ -93,13 +60,13 @@
     content: "{{ containerd_default_config.stdout | regex_replace('SystemdCgroup = false', 'SystemdCgroup = true') }}"
     dest: /etc/containerd/config.toml
     mode: "0644"
-  notify: restart containerd
+  notify: Restart containerd
 - name: Template containerd systemd unit
   ansible.builtin.template:
     src: containerd.service.j2
     dest: /etc/systemd/system/containerd.service
     mode: "0644"
-  notify: restart containerd
+  notify: Restart containerd
 - name: Enable and start containerd
   ansible.builtin.systemd:
     name: containerd

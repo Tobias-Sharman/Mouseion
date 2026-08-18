@@ -27,6 +27,7 @@
 - name: Generate gateway private key
   ansible.builtin.shell: "umask 077 && wg genkey > {{ wireguard_dir }}/gateway.key"
   when: not gateway_key_stat.stat.exists
+  changed_when: true
   delegate_to: localhost
   become: false
 - name: Derive gateway public key
@@ -49,6 +50,7 @@
   loop_control:
     label: "{{ item.item.name }}"
   when: not item.stat.exists
+  changed_when: true
   delegate_to: localhost
   become: false
 - name: Derive peer public keys
@@ -64,13 +66,13 @@
     src: "{{ wireguard_dir }}/gateway.key"
     dest: /etc/wireguard/gateway.key
     mode: "0600"
-  notify: restart wireguard
+  notify: Restart wireguard
 - name: Template WireGuard interface config
   ansible.builtin.template:
     src: wg0.conf.j2
     dest: /etc/wireguard/wg0.conf
     mode: "0600"
-  notify: restart wireguard
+  notify: Restart wireguard
 - name: Enable and start WireGuard
   ansible.builtin.systemd:
     name: wg-quick@wg0
