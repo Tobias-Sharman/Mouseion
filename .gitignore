@@ -9,8 +9,8 @@
 /data/
 /test-files/
 
-ansible/certs/
-ansible/wireguard/
+**/ansible/certs/
+**/ansible/wireguard/
 *.retry
 .ansible/
 

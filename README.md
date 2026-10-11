@@ -40,10 +40,20 @@ curl http://<host>:8080/healthz
 curl -F file=@test-files/test_file_00001.jpg http://<host>:8080/upload
 ```
 
+## Cluster deployment
+
+**v1 (`legacy/v1-handrolled/`) is frozen and unmaintained.** It
+was a Kubernetes the Hard Way style learning build: hand-rolled certs, etcd,
+control plane, and CNI routing. It receives no updates or fixes. Do not use it
+as a starting point for anything new. It is at best of use only as a reference.
+
+v2 replaces it with kubeadm, a CNI plugin, the AWS cloud controller manager,
+and the EBS CSI driver. It is written fresh, with v1 kept only as a reference.
+
 ## Naming
 
 This project follows a Library of Alexandria theme (as seen similarly in
-[Pharos][https://github.com/Tobias-Sharman/Pharos]):
+[Pharos](https://github.com/Tobias-Sharman/Pharos)):
 
 - **Mouseion** — the overall project/service, spanning both sites below
 - **Serapeum** — the AWS-hosted site (provisioned via Terraform)

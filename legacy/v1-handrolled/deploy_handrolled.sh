@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TERRAFORM_DIR="$REPO_ROOT/terraform"
-ANSIBLE_DIR="$REPO_ROOT/ansible"
+V1_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TERRAFORM_DIR="$V1_ROOT/terraform"
+ANSIBLE_DIR="$V1_ROOT/ansible"
 
 info() { printf "\033[1;34m==>\033[0m %s\n" "$1"; }
 warn() { printf "\033[1;33m==>\033[0m %s\n" "$1"; }
