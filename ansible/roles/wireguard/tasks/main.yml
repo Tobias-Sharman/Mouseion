@@ -1,0 +1,69 @@
+- name: Install wireguard-tools
+  ansible.builtin.apt:
+    name: wireguard-tools
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+- name: Generate gateway private key
+  ansible.builtin.shell:
+    cmd: umask 077 && wg genkey > /etc/wireguard/wg0.key
+    creates: /etc/wireguard/wg0.key
+  notify: Restart wireguard
+- name: Derive gateway public key
+  ansible.builtin.shell:
+    cmd: wg pubkey < /etc/wireguard/wg0.key
+  register: wireguard_gateway_public_key
+  changed_when: false
+- name: Create local WireGuard directory
+  ansible.builtin.file:
+    path: "{{ wireguard_dir }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+  run_once: true
+- name: Generate client private key
+  ansible.builtin.shell:
+    cmd: "umask 077 && wg genkey > {{ wireguard_dir }}/{{ wireguard_client_name }}.key"
+    creates: "{{ wireguard_dir }}/{{ wireguard_client_name }}.key"
+  delegate_to: localhost
+  become: false
+  run_once: true
+- name: Derive client public key
+  ansible.builtin.shell:
+    cmd: "wg pubkey < {{ wireguard_dir }}/{{ wireguard_client_name }}.key"
+  register: wireguard_client_public_key
+  changed_when: false
+  delegate_to: localhost
+  become: false
+  run_once: true
+- name: Template WireGuard interface config
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: "0600"
+  notify: Restart wireguard
+  vars:
+    tunnel_address: "{{ terraform_outputs.gateway_tunnel_address }}"
+    client_public_key: "{{ wireguard_client_public_key.stdout }}"
+    client_tunnel_ip: "{{ wireguard_client_tunnel_ip }}"
+- name: Enable and start WireGuard
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    enabled: true
+    state: started
+- name: Template client config
+  ansible.builtin.template:
+    src: client.conf.j2
+    dest: "{{ wireguard_dir }}/{{ wireguard_client_name }}.conf"
+    mode: "0600"
+  vars:
+    private_key: "{{ lookup('ansible.builtin.file', wireguard_dir ~ '/' ~ wireguard_client_name ~ '.key') }}"
+    client_tunnel_ip: "{{ wireguard_client_tunnel_ip }}"
+    dns_server: "{{ terraform_outputs.vpc_dns_resolver }}"
+    gateway_public_key: "{{ wireguard_gateway_public_key.stdout }}"
+    gateway_endpoint: "{{ terraform_outputs.gateway_public_ip }}:51820"
+    allowed_ips: "{{ terraform_outputs.vpc_cidr }}, {{ terraform_outputs.vpn_tunnel_cidr }}"
+  delegate_to: localhost
+  become: false
+  run_once: true

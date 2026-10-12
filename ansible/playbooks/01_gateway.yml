@@ -1,0 +1,23 @@
+- name: Configure the WireGuard and NAT gateway
+  hosts: gateway
+  become: true
+  gather_facts: false
+  pre_tasks:
+    - name: Wait for the gateway to accept SSH
+      ansible.builtin.wait_for_connection:
+        timeout: 600
+    - name: Wait for cloud-init to finish
+      ansible.builtin.command: cloud-init status --wait
+      register: cloud_init_status
+      changed_when: false
+      failed_when: cloud_init_status.rc not in [0, 2]
+    - name: Gather facts
+      ansible.builtin.setup:
+    - name: Read Terraform outputs
+      ansible.builtin.import_tasks: tasks/read_terraform_outputs.yml
+      delegate_to: localhost
+      run_once: true
+      become: false
+  roles:
+    - gateway-firewall
+    - wireguard

@@ -1,0 +1,16 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - eu-west-2
+filters:
+  "tag:Project": serapeum
+  instance-state-name: running
+hostnames:
+  - tag:Name
+keyed_groups:
+  - key: ec2_tags.Role
+    prefix: ""
+    separator: ""
+groups:
+  node: ec2_tags.Role != 'gateway'
+compose:
+  ansible_host: (ec2_tags.Role == 'gateway') | ternary(public_ip_address, private_ip_address)

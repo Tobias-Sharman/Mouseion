@@ -1,0 +1,28 @@
+- name: Install nftables
+  ansible.builtin.apt:
+    name: nftables
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+- name: Enable IP forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_file: /etc/sysctl.d/99-gateway.conf
+    reload: true
+- name: Template nftables ruleset
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    mode: "0644"
+    validate: nft -c -f %s
+  notify: Reload nftables
+  vars:
+    uplink_interface: "{{ ansible_facts['default_ipv4']['interface'] }}"
+    vpc_cidr: "{{ terraform_outputs.vpc_cidr }}"
+    private_subnet_cidr: "{{ terraform_outputs.private_subnet_cidr }}"
+- name: Enable and start nftables
+  ansible.builtin.systemd:
+    name: nftables
+    enabled: true
+    state: started

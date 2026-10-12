@@ -1,0 +1,22 @@
+#!/usr/sbin/nft -f
+define uplink = "{{ uplink_interface }}"
+define vpc = {{ vpc_cidr }}
+define private_subnet = {{ private_subnet_cidr }}
+
+flush ruleset
+
+table inet filter {
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+    ct state established,related accept
+    iifname "wg0" ip daddr $vpc accept
+    iifname $uplink ip saddr $private_subnet ip daddr != $vpc accept
+  }
+}
+
+table ip nat {
+  chain postrouting {
+    type nat hook postrouting priority srcnat; policy accept;
+    oifname $uplink ip saddr $private_subnet ip daddr != $vpc masquerade
+  }
+}

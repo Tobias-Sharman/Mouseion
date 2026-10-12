@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{ private_key }}
+Address = {{ client_tunnel_ip }}/32
+DNS = {{ dns_server }}
+
+[Peer]
+PublicKey = {{ gateway_public_key }}
+Endpoint = {{ gateway_endpoint }}
+AllowedIPs = {{ allowed_ips }}
+PersistentKeepalive = 25

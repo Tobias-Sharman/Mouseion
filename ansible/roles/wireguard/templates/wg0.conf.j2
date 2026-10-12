@@ -1,0 +1,8 @@
+[Interface]
+Address = {{ tunnel_address }}
+ListenPort = 51820
+PostUp = wg set %i private-key /etc/wireguard/%i.key
+
+[Peer]
+PublicKey = {{ client_public_key }}
+AllowedIPs = {{ client_tunnel_ip }}/32

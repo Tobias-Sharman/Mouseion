@@ -50,6 +50,24 @@ as a starting point for anything new. It is at best of use only as a reference.
 v2 replaces it with kubeadm, a CNI plugin, the AWS cloud controller manager,
 and the EBS CSI driver. It is written fresh, with v1 kept only as a reference.
 
+### v2 (in progress)
+
+Currently provisions the AWS infrastructure and the gateway only, Kubernetes is
+not installed yet. All nodes are in a private subnet and are only reachable
+through the WireGuard gateway, which also provides their outbound NAT.
+
+Requires `terraform`, `ansible`, `wireguard-tools`, AWS credentials, and
+`terraform/terraform.tfvars` (see `terraform.tfvars.example`).
+
+```bash
+./scripts/deploy/deploy.sh               # apply Terraform, configure the gateway, check nodes via the tunnel
+terraform -chdir=terraform destroy       # tear everything down
+```
+
+The script pauses for you to bring up the tunnel yourself with
+`sudo wg-quick up ansible/wireguard/admin-laptop.conf`. A rebuild gives the
+gateway a new public IP and key, and the script rewrites that config to match.
+
 ## Naming
 
 This project follows a Library of Alexandria theme (as seen similarly in

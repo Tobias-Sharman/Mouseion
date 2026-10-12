@@ -1,0 +1,10 @@
+- name: Read Terraform outputs
+  ansible.builtin.command:
+    cmd: "terraform -chdir={{ playbook_dir }}/../../terraform output -json"
+  register: terraform_output_json
+  changed_when: false
+- name: Expose Terraform outputs as facts
+  ansible.builtin.set_fact:
+    terraform_outputs: "{{ dict(raw.keys() | zip(raw.values() | map(attribute='value'))) }}"
+  vars:
+    raw: "{{ terraform_output_json.stdout | from_json }}"
